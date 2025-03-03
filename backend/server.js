@@ -3,9 +3,10 @@ import cors from "cors";
 import crypto from "crypto";
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000; // ✅ Dynamic port for Render
 
-app.use(cors());
+// ✅ Allow frontend to access backend
+app.use(cors({ origin: '*' }));  
 app.use(express.json());
 
 let playerBalance = 1000;
@@ -25,21 +26,14 @@ app.post("/roll-dice", (req, res) => {
   const hash = generateHash(clientSeed, serverSeed);
   const roll = Math.floor(Math.random() * 6) + 1;
 
-  if (roll >= 4) {
-    playerBalance += bet;
-  } else {
-    playerBalance -= bet;
-  }
+  playerBalance += roll >= 4 ? bet : -bet;
 
   res.json({ roll, newBalance: playerBalance, hash, seed: clientSeed });
 });
 
-app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
-
-
+// ✅ Test route to check backend is working
 app.get('/test', (req, res) => {
-  res.send('Backend is working!');
+  res.send('Backend is working on Render!');
 });
 
-
-app.use(cors({ origin: '*' }));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
