@@ -37,8 +37,9 @@ app.post("/roll-dice", (req, res) => {
 app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
 
 
-app.get('/', (req, res) => {
-  res.send('Backend is running');
+app.get('/test', (req, res) => {
+  res.send('Backend is working!');
 });
+
 
 app.use(cors({ origin: '*' }));
