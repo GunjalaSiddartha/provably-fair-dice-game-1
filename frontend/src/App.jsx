@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import crypto from "crypto";
 
 export default function App() {
   const [balance, setBalance] = useState(1000);
@@ -7,22 +7,24 @@ export default function App() {
   const [rollResult, setRollResult] = useState(null);
   const [hash, setHash] = useState("");
 
-  const rollDice = async () => {
+  const generateHash = (clientSeed, serverSeed) => {
+    return crypto.createHash("sha256").update(clientSeed + serverSeed).digest("hex");
+  };
+
+  const rollDice = () => {
     if (bet <= 0 || bet > balance) {
       alert("Invalid bet amount!");
       return;
     }
 
-    try {
-      const response = await axios.post("http://localhost:5000/roll-dice", { bet });
-      const { roll, newBalance, hash } = response.data;
+    const serverSeed = crypto.randomBytes(16).toString("hex");
+    const clientSeed = Date.now().toString();
+    const hash = generateHash(clientSeed, serverSeed);
+    const roll = Math.floor(Math.random() * 6) + 1;
 
-      setRollResult(roll);
-      setBalance(newBalance);
-      setHash(hash);
-    } catch (error) {
-      console.error("Error rolling dice", error);
-    }
+    setBalance((prevBalance) => prevBalance + (roll >= 4 ? bet : -bet));
+    setRollResult(roll);
+    setHash(hash);
   };
 
   return (
@@ -42,12 +44,8 @@ export default function App() {
       >
         Roll Dice
       </button>
-      {rollResult !== null && (
-        <p className="mt-4">You rolled: {rollResult}</p>
-      )}
-      {hash && (
-        <p className="text-xs mt-2">SHA-256 Hash: {hash}</p>
-      )}
+      {rollResult !== null && <p className="mt-4">You rolled: {rollResult}</p>}
+      {hash && <p className="text-xs mt-2">SHA-256 Hash: {hash}</p>}
     </div>
   );
 }
